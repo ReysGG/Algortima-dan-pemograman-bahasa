@@ -29,17 +29,15 @@ int menu() {
     return input;
 }
 
-void NulisData(fstream &data, int posisi, Barang &barang) {
-    data.seekp((posisi - 1) * sizeof(Barang), ios::beg);
-    data.write(reinterpret_cast<char*>(&barang), sizeof(Barang));
-}
-
 int AmbilData(fstream &data) {
-    data.seekg(0, ios::beg);
-    int start = data.tellg();
+    data.open("data.bin", ios::in | ios::binary);
+    if (!data.is_open()) {
+        return 0;
+    }
     data.seekg(0, ios::end);
-    int end = data.tellg();
-    return (end - start) / sizeof(Barang);
+    int size = data.tellg() / sizeof(Barang);
+    data.close();
+    return size;
 }
 
 void MenambahData(fstream &data) {
@@ -48,18 +46,16 @@ void MenambahData(fstream &data) {
 
     cout << "Ukuran data = " << size << endl;
 
-    data.open("data.bin", ios::in | ios::out | ios::binary);
+    data.open("data.bin", ios::in | ios::out | ios::binary | ios::app);
     if (!data.is_open()) {
+        data.clear();
         data.open("data.bin", ios::out | ios::binary);
     }
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
     cout << "===============================" << endl;
     cout << "Nama Barang = ";
-    char tempNama[50];
-    cin.getline(tempNama, 50);
-    strncpy(barang.nama, tempNama, 49);
-    barang.nama[49] = '\0';
+    cin.getline(barang.nama, 50);
 
     cout << "ID Barang = ";
     while (!(cin >> barang.id)) {
@@ -82,9 +78,8 @@ void MenambahData(fstream &data) {
     cout << "===============================" << endl;
 
     if (data.is_open()) {
-        data.clear();
         data.seekp(0, ios::end);
-        NulisData(data, size + 1, barang);
+        data.write(reinterpret_cast<char*>(&barang), sizeof(Barang));
         data.close();
         cout << "Barang berhasil ditambahkan :)" << endl;
     } else {
@@ -179,10 +174,7 @@ void EditData(fstream &data, int id) {
             cout << "Edit data Barang:" << endl;
             cout << "Nama Barang = ";
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            char tempNama[50];
-            cin.getline(tempNama, 50);
-            strncpy(barang.nama, tempNama, 49);
-            barang.nama[49] = '\0';
+            cin.getline(barang.nama, 50);
             cout << "Jumlah barang = ";
             while (!(cin >> barang.jumlah)) {
                 cin.clear();
